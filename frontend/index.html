@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AHTSE Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --success: #22c55e;
+            --warning: #eab308;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-area textarea {
+            width: 100%;
+            height: 150px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+
+        .controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        select {
+            background: #0f172a;
+            color: white;
+            border: 1px solid #334155;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .score-display {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 8px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0 auto;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-safe {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .badge-warn {
+            background: rgba(234, 179, 8, 0.2);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .log-entry {
+            border-bottom: 1px solid #334155;
+            padding: 10px 0;
+            font-size: 14px;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        pre {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ AHTSE Dashboard</h1>
+            <div class="subtitle">AI Hallucination Firewall + Trust Score Engine</div>
+        </header>
+
+        <div class="grid">
+            <!-- Left Column: Input -->
+            <div class="card">
+                <h3>Input AI Response</h3>
+                <div class="input-area">
+                    <textarea id="aiInput" placeholder="Paste AI generated text here to audit..."></textarea>
+                </div>
+                <div class="input-area" style="margin-top: 10px;">
+                    <textarea id="contextInput" placeholder="Optional: Paste context/source text here..."
+                        style="height: 80px;"></textarea>
+                </div>
+                <div class="controls">
+                    <select id="firewallMode">
+                        <option value="balanced">Balanced Mode</option>
+                        <option value="strict">Strict Mode</option>
+                        <option value="permissive">Permissive Mode</option>
+                    </select>
+                    <button onclick="evaluateText()">Audit & Firewall</button>
+                </div>
+            </div>
+
+            <!-- Right Column: Results -->
+            <div class="card">
+                <h3>Trust Score Analysis</h3>
+                <div class="score-display">
+                    <div id="scoreCircle" class="score-circle">--</div>
+                    <div id="riskLabel" style="margin-top: 10px; font-weight: bold;">WAITING FOR INPUT</div>
+                </div>
+                <div id="breakdown" style="font-size: 14px; color: var(--text-secondary);">
+                    <!-- Breakdown metrics go here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="grid" style="margin-top: 20px;">
+            <!-- Firewall Output -->
+            <div class="card">
+                <h3>Firewall Output</h3>
+                <div id="firewallOutput" style="white-space: pre-wrap; color: var(--text-secondary);">
+                    No output yet.
+                </div>
+            </div>
+
+            <!-- Detailed Logs -->
+            <div class="card">
+                <h3>Audit Logs</h3>
+                <div id="auditLogs">
+                    <!-- JSON details -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function evaluateText() {
+            const text = document.getElementById('aiInput').value;
+            const context = document.getElementById('contextInput').value;
+            const mode = document.getElementById('firewallMode').value;
+
+            if (!text) return alert("Please enter text to evaluate.");
+
+            document.getElementById('riskLabel').innerText = "ANALYZING...";
+
+            try {
+                const response = await fetch('/api/evaluate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, context, mode })
+                });
+
+                const data = await response.json();
+                renderResults(data);
+            } catch (e) {
+                console.error(e);
+                alert("Error connecting to AHTSE backend.");
+            }
+        }
+
+        function renderResults(data) {
+            const trust = data.trust_analysis;
+            const firewall = data.firewall_decision;
+
+            // Update Score
+            const scoreCircle = document.getElementById('scoreCircle');
+            scoreCircle.innerText = trust.trust_score;
+
+            // Color coding
+            let color = 'var(--accent)';
+            if (trust.trust_score < 30) color = 'var(--danger)';
+            else if (trust.trust_score < 70) color = 'var(--warning)';
+            else color = 'var(--success)';
+
+            scoreCircle.style.borderColor = color;
+            scoreCircle.style.color = color;
+
+            document.getElementById('riskLabel').innerText = trust.risk_category.toUpperCase();
+            document.getElementById('riskLabel').style.color = color;
+
+            // Breakdown
+            document.getElementById('breakdown').innerHTML = `
+                <p>Hallucination Probability: <b>${trust.details.hallucination.hallucination_probability}%</b></p>
+                <p>Citation Score: <b>${trust.details.citations.citation_score}</b></p>
+                <p>Firewall Action: <b>${firewall.action}</b></p>
+            `;
+
+            // Firewall Output
+            const outputDiv = document.getElementById('firewallOutput');
+            outputDiv.innerText = firewall.final_output;
+            if (firewall.action === 'BLOCK') outputDiv.style.color = 'var(--danger)';
+            else if (firewall.action === 'SOFTEN') outputDiv.style.color = 'var(--warning)';
+            else outputDiv.style.color = 'var(--success)';
+
+            // Logs
+            document.getElementById('auditLogs').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+    </script>
+</body>
+
+</html>
