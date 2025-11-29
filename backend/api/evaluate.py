@@ -42,7 +42,7 @@ async def evaluate_text(
     logger.info("Received evaluation request. Mode: %s", req.mode)
     try:
         # 1. Compute Trust Score
-        score_data = trust_engine.calculate_trust_score(req.text, req.context)
+        score_data = trust_engine.calculate_trust_score(req.text, req.context or "")
 
         # 2. Apply Firewall
         firewall_engine.set_mode(req.mode or "balanced")

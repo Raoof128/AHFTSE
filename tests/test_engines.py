@@ -3,7 +3,7 @@ from backend.engines.firewall_engine import FirewallEngine
 from backend.engines.trustscore import TrustScoreEngine
 
 
-def test_hallucination_detector():
+def test_hallucination_detector() -> None:
     detector = HallucinationDetector()
 
     # Test risky text
@@ -18,7 +18,7 @@ def test_hallucination_detector():
     assert score["hallucination_probability"] < 20  # Should be low
 
 
-def test_trust_score_engine():
+def test_trust_score_engine() -> None:
     engine = TrustScoreEngine()
 
     # Test high trust
@@ -32,7 +32,7 @@ def test_trust_score_engine():
     assert result["trust_score"] < 100
 
 
-def test_firewall_engine():
+def test_firewall_engine() -> None:
     fw = FirewallEngine()
 
     # Test Block

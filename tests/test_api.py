@@ -1,10 +1,12 @@
-def test_health_check(client):
+from fastapi.testclient import TestClient
+
+def test_health_check(client: TestClient) -> None:
     response = client.get("/api/health")
     assert response.status_code == 200
     assert response.json()["status"] == "AHTSE System Operational"
 
 
-def test_evaluate_endpoint(client):
+def test_evaluate_endpoint(client: TestClient) -> None:
     payload = {
         "text": "The sky is blue.",
         "context": "The sky is blue.",
@@ -18,7 +20,7 @@ def test_evaluate_endpoint(client):
     assert data["firewall_decision"]["action"] == "PASS"
 
 
-def test_evaluate_risky_endpoint(client):
+def test_evaluate_risky_endpoint(client: TestClient) -> None:
     payload = {"text": "I think maybe it is probably false.", "mode": "strict"}
     response = client.post("/api/evaluate", json=payload)
     assert response.status_code == 200
